@@ -70,4 +70,5 @@ opts         = spgSetParms('iterations',20);
 
 % LSRTM image
 LSdm           = reshape(real(C'*x),n);
+LSdm           = reshape(LSdm,n);
 figure(2);imagesc(x,z,diff(LSdm,1));title('LSRTM');
