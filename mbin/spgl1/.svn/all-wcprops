@@ -1,0 +1,143 @@
+K 25
+svn:wc:ra_dav:version-url
+V 48
+/SLIM/SLIM.Software.SPGL1-SLIM/!svn/ver/88/trunk
+END
+spgl1.m
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/SLIM/SLIM.Software.SPGL1-SLIM/!svn/ver/88/trunk/spgl1.m
+END
+README.spgl1
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/SLIM/SLIM.Software.SPGL1-SLIM/!svn/ver/31/trunk/README.spgl1
+END
+NormGroupL2_primal.m
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/SLIM/SLIM.Software.SPGL1-SLIM/!svn/ver/31/trunk/NormGroupL2_primal.m
+END
+spg_lasso.m
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/SLIM/SLIM.Software.SPGL1-SLIM/!svn/ver/31/trunk/spg_lasso.m
+END
+NormGroupL2_dual.m
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/SLIM/SLIM.Software.SPGL1-SLIM/!svn/ver/31/trunk/NormGroupL2_dual.m
+END
+spg_bpdn.m
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/SLIM/SLIM.Software.SPGL1-SLIM/!svn/ver/31/trunk/spg_bpdn.m
+END
+Contents.m
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/SLIM/SLIM.Software.SPGL1-SLIM/!svn/ver/31/trunk/Contents.m
+END
+NormL1_project.m
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/SLIM/SLIM.Software.SPGL1-SLIM/!svn/ver/88/trunk/NormL1_project.m
+END
+NormL12_primal.m
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/SLIM/SLIM.Software.SPGL1-SLIM/!svn/ver/31/trunk/NormL12_primal.m
+END
+spgdemo.m
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/SLIM/SLIM.Software.SPGL1-SLIM/!svn/ver/31/trunk/spgdemo.m
+END
+NormL12_dual.m
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/SLIM/SLIM.Software.SPGL1-SLIM/!svn/ver/31/trunk/NormL12_dual.m
+END
+README
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/SLIM/SLIM.Software.SPGL1-SLIM/!svn/ver/31/trunk/README
+END
+COPYING.spgl1
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/SLIM/SLIM.Software.SPGL1-SLIM/!svn/ver/31/trunk/COPYING.spgl1
+END
+spg_group.m
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/SLIM/SLIM.Software.SPGL1-SLIM/!svn/ver/31/trunk/spg_group.m
+END
+spgSetParms.m
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/SLIM/SLIM.Software.SPGL1-SLIM/!svn/ver/31/trunk/spgSetParms.m
+END
+spg_mmv.m
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/SLIM/SLIM.Software.SPGL1-SLIM/!svn/ver/31/trunk/spg_mmv.m
+END
+spg_bp.m
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/SLIM/SLIM.Software.SPGL1-SLIM/!svn/ver/31/trunk/spg_bp.m
+END
+spgsetup.m
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/SLIM/SLIM.Software.SPGL1-SLIM/!svn/ver/31/trunk/spgsetup.m
+END
+NormL1_primal.m
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/SLIM/SLIM.Software.SPGL1-SLIM/!svn/ver/31/trunk/NormL1_primal.m
+END
+NormGroupL2_project.m
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/SLIM/SLIM.Software.SPGL1-SLIM/!svn/ver/31/trunk/NormGroupL2_project.m
+END
+NormL1_dual.m
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/SLIM/SLIM.Software.SPGL1-SLIM/!svn/ver/31/trunk/NormL1_dual.m
+END
+NormL12_project.m
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/SLIM/SLIM.Software.SPGL1-SLIM/!svn/ver/31/trunk/NormL12_project.m
+END
+ChangeLog.spgl1
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/SLIM/SLIM.Software.SPGL1-SLIM/!svn/ver/31/trunk/ChangeLog.spgl1
+END
