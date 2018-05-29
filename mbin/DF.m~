@@ -51,7 +51,6 @@ end
 Pr = opKron(opLInterp1D(xt,model.xrec),opLInterp1D(zt,model.zrec));
 Ps = opKron(opLInterp1D(xt,model.xsrc),opLInterp1D(zt,model.zsrc));
 Px = opKron(opExtension(model.n(2),model.nb(1,2)),opExtension(model.n(1),model.nb(1,1)));
-Pe = opKron(opExtension(model.n(2),model.nb(1,2),0),opExtension(model.n(1),model.nb(1,1),0));
 % model parameter: slowness [s/m] on computational grid.
 mu = Px*m;
 
@@ -92,7 +91,7 @@ else
                 Sk        = -Pr'*reshape(inputloc(:,k),[nrec nsrc]);
                 V0k       = Hk'\Sk;
                 r         = real(sum(conj(U0k).*(dHk'*V0k),2));
-                outputloc = outputloc + Pe'*r;
+                outputloc = outputloc + Px'*r;
             end
         output = pSPOT.utils.global_sum(outputloc);
     end
