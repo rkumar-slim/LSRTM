@@ -47,10 +47,12 @@ b           = D - D0;
 tic;[LL,UU,Pp,Qp,Rr,dH] = LUFact(m0,Q,model);toc
 J           = oppDFLU(m0,Q,LL,UU,Pp,Qp,Rr,dH,model);
 tic;dm      = J'*b;toc
-dm          = reshape(dm,n);
-figure(2);imagesc(x,z,diff(dm,1));title('LU');
+dd1 = J*dm;
+% dm          = reshape(dm,n);
+% figure(2);imagesc(x,z,diff(dm,1));title('LU');
 %% no LU factorization
 J           = oppDF(m0,Q,model);
-tic;dm      = J'*b;toc;
-dm          = reshape(dm,n);
-figure(1);imagesc(x,z,diff(dm,1));title('no LU');
+tic;dm1      = J'*b;toc;
+dd2 = J*dm1;
+% dm          = reshape(dm,n);
+% figure(1);imagesc(x,z,diff(dm,1));title('no LU');

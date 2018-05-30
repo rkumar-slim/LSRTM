@@ -58,56 +58,25 @@ m03          = S*m3;
 m04          = S*m4;
 
 %% generate true seismic data
-D1           = F(m1,Q,model);
-D2           = F(m2,Q,model);
-D3           = F(m3,Q,model);
-D4           = F(m4,Q,model);
-
-% generate data in background model
-D01          = F(m01,Q,model);
-D02          = F(m02,Q,model);
-D03          = F(m03,Q,model);
-D04          = F(m04,Q,model);
-
-% linearized Data
-b1           = D1 - D01;
-b2           = D2 - D02;
-b3           = D3 - D03;
-b4           = D4 - D04;
-%% serial
-J1           = oppDF(m01,Q,model);
-tic;dm1      = J1'*b1;toc;
-dd1          = J1*dm1;
-dm1          = reshape(dm1,n);
-figure(1);imagesc(x,z,diff(dm1,1));title('1');
-
-J2           = oppDF(m02,Q,model);
-tic;dm2      = J2'*b2;toc;
-dd2          = J2*dm2;
-dm2          = reshape(dm2,n);
-figure(2);imagesc(x,z,diff(dm2,1));title('2');
-
-J3           = oppDF(m03,Q,model);
-tic;dm3      = J3'*b3;toc;
-dd3          = J3*dm3;
-dm3          = reshape(dm3,n);
-figure(3);imagesc(x,z,diff(dm3,1));title('3');
-
-J4           = oppDF(m04,Q,model);
-tic;dm4      = J4'*b4;toc;
-dd4          = J4*dm4;
-dm4          = reshape(dm4,n);
-figure(4);imagesc(x,z,diff(dm4,1));title('4');
-%% all in one go approach 
 Df1          = Fm([m1 m2 m3 m4],Q,model);
 Df2          = Fm([m01 m02 m03 m04],Q,model);
 bf           = Df1 - Df2;
-output       = DFm([m01 m02 m03 m04],Q,bf,-1,model);
-bfd          = DFm([m01 m02 m03 m04],Q,output,1,model);
+%% Lu factorization
+tic;[LL,UU,Pp,Qp,Rr,dH] = LUFactm([m01 m02 m03 m04],Q,model);toc
+%% all in one go approach 
+tic;output       = DFm([m01 m02 m03 m04],Q,bf,-1,model);toc;
+tic;bfd       = DFm([m01 m02 m03 m04],Q,output,1,model);toc;
 output       = reshape(output,model.n(1),model.n(2),model.nsamples);
-figure(5);imagesc(x,z,diff(output(:,:,1),1));title('1j');
-figure(6);imagesc(x,z,diff(output(:,:,2),1));title('2j');
-figure(7);imagesc(x,z,diff(output(:,:,3),1));title('3j');
-figure(8);imagesc(x,z,diff(output(:,:,4),1));title('4j');
-
+figure(1);imagesc(x,z,diff(output(:,:,1),1));title('1');
+figure(2);imagesc(x,z,diff(output(:,:,2),1));title('2');
+figure(3);imagesc(x,z,diff(output(:,:,3),1));title('3');
+figure(4);imagesc(x,z,diff(output(:,:,4),1));title('4');
+%% LU factorization
+tic;output       = DFmLU([m01 m02 m03 m04],Q,bf,-1,LL,UU,Pp,Qp,Rr,dH,model);toc;
+tic;bfdlu        = DFmLU([m01 m02 m03 m04],Q,output,1,LL,UU,Pp,Qp,Rr,dH,model);toc;
+output       = reshape(output,model.n(1),model.n(2),model.nsamples);
+figure(5);imagesc(x,z,diff(output(:,:,1),1));title('1lu');
+figure(6);imagesc(x,z,diff(output(:,:,2),1));title('2lu');
+figure(7);imagesc(x,z,diff(output(:,:,3),1));title('3lu');
+figure(8);imagesc(x,z,diff(output(:,:,4),1));title('4lu');
 
