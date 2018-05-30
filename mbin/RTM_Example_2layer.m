@@ -24,7 +24,7 @@ model.zt      = z;
 model.nb      = [60 60;60 60];
 
 % set up frequency
-model.freq    = [5:1:40];
+model.freq    = [5 6];
 model.nf      = numel(model.freq);
 model.f0      = 20; %peak freq of ricker wavelet
 model.t0      = 0; %phase shift of wavelet in seconds
@@ -42,6 +42,7 @@ m            = 1e6./v(:).^2; % velocity to slowness^2
 % smooth model
 S              = opKron(opSmooth(n(2),10),opSmooth(n(1),10));
 m0          = S*m;
+[LL,UU,Pp,Qp,Rr,dH] = LUFactc(m,Q,model);
 
 % generate true seismic data
 D           = F(m,Q,model);

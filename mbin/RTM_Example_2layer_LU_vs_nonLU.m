@@ -47,6 +47,13 @@ b           = D - D0;
 tic;[LL,UU,Pp,Qp,Rr,dH] = LUFact(m0,Q,model);toc
 J           = oppDFLU(m0,Q,LL,UU,Pp,Qp,Rr,dH,model);
 tic;dm      = J'*b;toc
+
+tic;[LL,UU,Pp,Qp,Rr,dH] = LUFactc(m0,Q,model);toc
+tic;dm           = DFLUc(m0,Q,b,-1,LL,UU,Pp,Qp,Rr,dH,model);toc;
+
+tic;dm           = DF(m0,Q,b,-1,model);toc;
+% tic;dm      = J'*b;toc
+return
 dd1 = J*dm;
 % dm          = reshape(dm,n);
 % figure(2);imagesc(x,z,diff(dm,1));title('LU');
