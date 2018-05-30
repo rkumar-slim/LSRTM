@@ -55,12 +55,15 @@ b           = D - D0;
 % wavelet operator
 C           = opWavelet2(n(1),n(2),'haar',8,5);
 
+% LU factorization
+[LL,UU,Pp,Qp,Rr,dH] = LUfact(m,Q,model)
+
 % jacobian (operator A)
-J           = oppDF(m0,Q,model);
+J           = oppDFLU(m0,Q,LL,UU,Pp,Qp,Rr,dH,model);
 A           = J*C';
 
 % plain RTM
-tic;dm          = J'*b;toc
+tic;dm      = J'*b;toc
 dm          = reshape(dm,n);
 figure(1);imagesc(x,z,diff(dm,1));title('RTM');
 
