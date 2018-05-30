@@ -85,15 +85,15 @@ else
         nfreqloc  = length(freqloc);
         outputloc = zeros(prod(model.n),1);
         inputloc  = getLocalPart(input);
-            for k = 1:nfreqloc
-                inputloc  = reshape(inputloc,[nsrc*nrec,nfreqloc]);
-                [Hk, dHk] = Helm2D_opt(mu,dt,nt,model.nb,model.unit,freqloc(k),model.f0);
-                U0k       = Hk\(wloc(k)*(Ps'*Q));
-                Sk        = -Pr'*reshape(inputloc(:,k),[nrec nsrc]);
-                V0k       = Hk'\Sk;
-                r         = real(sum(conj(U0k).*(dHk'*V0k),2));
-                outputloc = outputloc + Pe'*r;
-            end
+        inputloc  = reshape(inputloc,[nsrc*nrec,nfreqloc]);
+        for k = 1:nfreqloc
+            [Hk, dHk] = Helm2D_opt(mu,dt,nt,model.nb,model.unit,freqloc(k),model.f0);
+            U0k       = Hk\(wloc(k)*(Ps'*Q));
+            Sk        = -Pr'*reshape(inputloc(:,k),[nrec nsrc]);
+            V0k       = Hk'\Sk;
+            r         = real(sum(conj(U0k).*(dHk'*V0k),2));
+            outputloc = outputloc + Pe'*r;
+        end
         output = pSPOT.utils.global_sum(outputloc);
     end
     output = output{1};

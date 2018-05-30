@@ -1,4 +1,4 @@
-function output = DFLU(m,Q,input,flag,LL,UU,Pp,Qp,Rr,dH,model)
+function output = DFm(m,Q,input,flag,model)
 % Frequency domain modeling in the Born approximation. This is the
 % Jacobian of F(m,Q,model).
 %
@@ -62,31 +62,21 @@ w    = distributed(w);
 if flag==1
     % solve Helmholtz for each frequency in parallel
     spmd
-        codistr   = codistributor1d(2,codistributor1d.unsetPartition,[nsrc*nrec,nfreq]);
+        codistr   = codistributor1d(3,codistributor1d.unsetPartition,[nsrc*nrec,model.nsamples,nfreq]);
         freqloc   = getLocalPart(freq);
         wloc      = getLocalPart(w);
         nfreqloc  = length(freqloc);
-        LLloc     = getLocalPart(LL);
-        UUloc     = getLocalPart(UU);
-        Pploc     = getLocalPart(Pp);
-        Qploc     = getLocalPart(Qp);
-        Rrloc     = getLocalPart(Rr);
-        dHloc     = getLocalPart(dH);
-        outputloc = zeros(nsrc*nrec,nfreqloc);
+        outputloc = zeros(nsrc*nrec,model.nsamples,nfreqloc);
+        input     = reshape(input,prod(model.n),model.nsamples);
+        for i = 1:model.nsamples
             for k = 1: nfreqloc
-                Qp        = reshape(Qploc(:,k),prod(nt),prod(nt)); 
-                LL        = reshape(LLloc(:,k),prod(nt),prod(nt)); 
-                UU        = reshape(UUloc(:,k),prod(nt),prod(nt));
-                Pp        = reshape(Pploc(:,k),prod(nt),prod(nt)); 
-                Rr        = reshape(Rrloc(:,k),prod(nt),prod(nt)); 
-                dH        = reshape(dHloc(:,k),prod(nt),prod(nt));
-                Qk        = wloc(k)*(Ps'*Q);
-                U0k       = Qp*(UU\(LL\(Pp*(Rr\(Qk)))));
-                Sk        = -(dH*(U0k.*repmat(Px*input,1,nsrc)));
-                U1k       = Qp*(UU\(LL\(Pp*(Rr\(Sk)))));
-                outputloc(:,k) = vec(Pr*U1k);
+                [Hk, dHk]        = Helm2D_opt(mu(:,i),dt,nt,model.nb,model.unit,freqloc(k),model.f0);
+                U0k              = Hk\(wloc(k)*(Ps'*Q));
+                Sk               = -(dHk*(U0k.*repmat(Px*input(:,i),1,nsrc)));
+                U1k              = Hk\Sk;
+                outputloc(:,i,k) = vec(Pr*U1k);
             end
-
+        end
         output = codistributed.build(outputloc,codistr,'noCommunication');
     end
     output = vec(output);
@@ -95,30 +85,21 @@ else
         freqloc   = getLocalPart(freq);
         wloc      = getLocalPart(w);
         nfreqloc  = length(freqloc);
-        LLloc     = getLocalPart(LL);
-        UUloc     = getLocalPart(UU);
-        Pploc     = getLocalPart(Pp);
-        Qploc     = getLocalPart(Qp);
-        Rrloc     = getLocalPart(Rr);
-        dHloc     = getLocalPart(dH);
-        outputloc = zeros(prod(model.n),1);
+        outputloc = zeros(prod(model.n),model.nsamples);
         inputloc  = getLocalPart(input);
-        inputloc  = reshape(inputloc,[nsrc*nrec,nfreqloc]);
+        inputloc  = reshape(inputloc,[nsrc*nrec,model.nsamples,nfreqloc]);
+        for i = 1:model.nsamples
             for k = 1:nfreqloc
-                Qp        = reshape(Qploc(:,k),prod(nt),prod(nt)); 
-                LL        = reshape(LLloc(:,k),prod(nt),prod(nt)); 
-                UU        = reshape(UUloc(:,k),prod(nt),prod(nt));
-                Pp        = reshape(Pploc(:,k),prod(nt),prod(nt)); 
-                Rr        = reshape(Rrloc(:,k),prod(nt),prod(nt)); 
-                dH        = reshape(dHloc(:,k),prod(nt),prod(nt));
-                Qk        = wloc(k)*(Ps'*Q);
-                U0k       = Qp*(UU\(LL\(Pp*(Rr\(Qk)))));
-                Sk        = -Pr'*reshape(inputloc(:,k),[nrec nsrc]);
-                V0k       = Rr'\(Pp'*(LL'\(UU'\(Qp'*Sk))));
-                r         = real(sum(conj(U0k).*(dH'*V0k),2));
-                outputloc = outputloc + Pe'*r;
+                [Hk, dHk]      = Helm2D_opt(mu(:,i),dt,nt,model.nb,model.unit,freqloc(k),model.f0);
+                U0k            = Hk\(wloc(k)*(Ps'*Q));
+                Sk             = -Pr'*reshape(inputloc(:,i,k),[nrec nsrc]);
+                V0k            = Hk'\Sk;
+                r              = real(sum(conj(U0k).*(dHk'*V0k),2));
+                outputloc(:,i) = outputloc(:,i) + Pe'*r;
             end
+        end
         output = pSPOT.utils.global_sum(outputloc);
     end
     output = output{1};
 end
+output = vec(output);

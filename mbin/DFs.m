@@ -1,4 +1,4 @@
-function output = DFLU(m,Q,input,flag,LL,UU,Pp,Qp,Rr,dH,model)
+function output = DFs(m,Q,input,flag,model)
 % Frequency domain modeling in the Born approximation. This is the
 % Jacobian of F(m,Q,model).
 %
@@ -56,8 +56,8 @@ Pe = opKron(opExtension(model.n(2),model.nb(1,2),0),opExtension(model.n(1),model
 mu = Px*m;
 
 % distribute frequencies according to standard distribution
-freq = distributed(model.freq);
-w    = distributed(w);
+freq = model.freq;
+w    = w;
 
 if flag==1
     % solve Helmholtz for each frequency in parallel
@@ -66,24 +66,12 @@ if flag==1
         freqloc   = getLocalPart(freq);
         wloc      = getLocalPart(w);
         nfreqloc  = length(freqloc);
-        LLloc     = getLocalPart(LL);
-        UUloc     = getLocalPart(UU);
-        Pploc     = getLocalPart(Pp);
-        Qploc     = getLocalPart(Qp);
-        Rrloc     = getLocalPart(Rr);
-        dHloc     = getLocalPart(dH);
         outputloc = zeros(nsrc*nrec,nfreqloc);
             for k = 1: nfreqloc
-                Qp        = reshape(Qploc(:,k),prod(nt),prod(nt)); 
-                LL        = reshape(LLloc(:,k),prod(nt),prod(nt)); 
-                UU        = reshape(UUloc(:,k),prod(nt),prod(nt));
-                Pp        = reshape(Pploc(:,k),prod(nt),prod(nt)); 
-                Rr        = reshape(Rrloc(:,k),prod(nt),prod(nt)); 
-                dH        = reshape(dHloc(:,k),prod(nt),prod(nt));
-                Qk        = wloc(k)*(Ps'*Q);
-                U0k       = Qp*(UU\(LL\(Pp*(Rr\(Qk)))));
-                Sk        = -(dH*(U0k.*repmat(Px*input,1,nsrc)));
-                U1k       = Qp*(UU\(LL\(Pp*(Rr\(Sk)))));
+                [Hk, dHk] = Helm2D_opt(mu,dt,nt,model.nb,model.unit,freqloc(k),model.f0);
+                U0k       = Hk\(wloc(k)*(Ps'*Q));
+                Sk        = -(dHk*(U0k.*repmat(Px*input,1,nsrc)));
+                U1k       = Hk\Sk;
                 outputloc(:,k) = vec(Pr*U1k);
             end
 
@@ -91,34 +79,24 @@ if flag==1
     end
     output = vec(output);
 else
-    spmd
-        freqloc   = getLocalPart(freq);
-        wloc      = getLocalPart(w);
-        nfreqloc  = length(freqloc);
-        LLloc     = getLocalPart(LL);
-        UUloc     = getLocalPart(UU);
-        Pploc     = getLocalPart(Pp);
-        Qploc     = getLocalPart(Qp);
-        Rrloc     = getLocalPart(Rr);
-        dHloc     = getLocalPart(dH);
-        outputloc = zeros(prod(model.n),1);
-        inputloc  = getLocalPart(input);
-        inputloc  = reshape(inputloc,[nsrc*nrec,nfreqloc]);
-            for k = 1:nfreqloc
-                Qp        = reshape(Qploc(:,k),prod(nt),prod(nt)); 
-                LL        = reshape(LLloc(:,k),prod(nt),prod(nt)); 
-                UU        = reshape(UUloc(:,k),prod(nt),prod(nt));
-                Pp        = reshape(Pploc(:,k),prod(nt),prod(nt)); 
-                Rr        = reshape(Rrloc(:,k),prod(nt),prod(nt)); 
-                dH        = reshape(dHloc(:,k),prod(nt),prod(nt));
-                Qk        = wloc(k)*(Ps'*Q);
-                U0k       = Qp*(UU\(LL\(Pp*(Rr\(Qk)))));
-                Sk        = -Pr'*reshape(inputloc(:,k),[nrec nsrc]);
-                V0k       = Rr'\(Pp'*(LL'\(UU'\(Qp'*Sk))));
-                r         = real(sum(conj(U0k).*(dH'*V0k),2));
-                outputloc = outputloc + Pe'*r;
-            end
-        output = pSPOT.utils.global_sum(outputloc);
+    
+    freqloc   = freq;
+    wloc      = w;
+    nfreqloc  = length(freq);
+    outputloc = zeros(prod(model.n),1);
+    inputloc  = reshape(gather(input),[nsrc*nrec,nfreqloc]);
+
+    for k = 1:nfreq
+        [Hk, dHk] = Helm2D_opt(mu,dt,nt,model.nb,model.unit,freqloc(k),model.f0);
+        [LL,UU,Pp,Qp,R] = lu(Hk);
+        Qk        = wloc(k)*(Ps'*Q);
+        U0k       = Qp*(UU\(LL\(Pp*(R\(Qk)))));
+%         U0k       = Hk\(wloc(k)*(Ps'*Q));
+        Sk        = -Pr'*reshape(inputloc(:,k),[nrec nsrc]);
+        V0k       = R'\(Pp'*(LL'\(UU'\(Qp'*Sk))));
+%         V0k       = Hk'\Sk;
+        r         = real(sum(conj(U0k).*(dHk'*V0k),2));
+        outputloc = outputloc + Pe'*r;
     end
-    output = output{1};
+    output = outputloc;
 end
