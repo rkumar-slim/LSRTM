@@ -62,32 +62,28 @@ w    = distributed(w);
 if flag==1
     % solve Helmholtz for each frequency in parallel
     spmd
-        codistr   = codistributor1d(2,codistributor1d.unsetPartition,[nsrc*nrec,nfreq]);
+        codistr   = codistributor1d(3,codistributor1d.unsetPartition,[nsrc*nrec,model.nsamples,nfreq]);
         freqloc   = getLocalPart(freq);
         wloc      = getLocalPart(w);
         nfreqloc  = length(freqloc);
-        LLloc     = getLocalPart(LL);
-        UUloc     = getLocalPart(UU);
-        Pploc     = getLocalPart(Pp);
-        Qploc     = getLocalPart(Qp);
-        Rrloc     = getLocalPart(Rr);
-        dHloc     = getLocalPart(dH);
-        outputloc = zeros(nsrc*nrec,nfreqloc);
+        outputloc = zeros(nsrc*nrec,model.nsamples,nfreqloc);
+        input     = reshape(prod(model.n),model.nsamples);
+        for i = 1:nsamples
             for k = 1: nfreqloc
-                Qp        = reshape(Qploc(:,k),prod(nt),prod(nt)); 
-                LL        = reshape(LLloc(:,k),prod(nt),prod(nt)); 
-                UU        = reshape(UUloc(:,k),prod(nt),prod(nt));
-                Pp        = reshape(Pploc(:,k),prod(nt),prod(nt)); 
-                Rr        = reshape(Rrloc(:,k),prod(nt),prod(nt)); 
-                dH        = reshape(dHloc(:,k),prod(nt),prod(nt));
+                Qp1        = Qp{k,i};
+                LL1        = LL{k,i};
+                UU1        = UU{k,i};
+                Pp1        = Pp{k,i};
+                Rr1        = Rr{k,i};
+                dH1        = dH{k,i};
                 Qk        = wloc(k)*(Ps'*Q);
-                U0k       = Qp*(UU\(LL\(Pp*(Rr\(Qk)))));
-                Sk        = -(dH*(U0k.*repmat(Px*input,1,nsrc)));
-                U1k       = Qp*(UU\(LL\(Pp*(Rr\(Sk)))));
-                outputloc(:,k) = vec(Pr*U1k);
+                U0k       = Qp1*(UU1\(LL1\(Pp1*(Rr1\(Qk)))));
+                Sk        = -(dH1*(U0k.*repmat(Px*input(:,i),1,nsrc)));
+                U1k       = Qp1*(UU1\(LL1\(Pp1*(Rr1\(Sk)))));
+                outputloc(:,i,k) = vec(Pr*U1k);
             end
-
         output = codistributed.build(outputloc,codistr,'noCommunication');
+        end
     end
     output = vec(output);
 else
@@ -95,30 +91,27 @@ else
         freqloc   = getLocalPart(freq);
         wloc      = getLocalPart(w);
         nfreqloc  = length(freqloc);
-        LLloc     = getLocalPart(LL);
-        UUloc     = getLocalPart(UU);
-        Pploc     = getLocalPart(Pp);
-        Qploc     = getLocalPart(Qp);
-        Rrloc     = getLocalPart(Rr);
-        dHloc     = getLocalPart(dH);
-        outputloc = zeros(prod(model.n),1);
+        outputloc = zeros(prod(model.n),model.nsamples);
         inputloc  = getLocalPart(input);
-        inputloc  = reshape(inputloc,[nsrc*nrec,nfreqloc]);
+        inputloc  = reshape(inputloc,[nsrc*nrec,model.nsamples,nfreqloc]);
+        for i = 1:model.nsamples
             for k = 1:nfreqloc
-                Qp        = reshape(Qploc(:,k),prod(nt),prod(nt)); 
-                LL        = reshape(LLloc(:,k),prod(nt),prod(nt)); 
-                UU        = reshape(UUloc(:,k),prod(nt),prod(nt));
-                Pp        = reshape(Pploc(:,k),prod(nt),prod(nt)); 
-                Rr        = reshape(Rrloc(:,k),prod(nt),prod(nt)); 
-                dH        = reshape(dHloc(:,k),prod(nt),prod(nt));
+                Qp1       = Qp{k,i};
+                LL1       = LL{k,i};
+                UU1       = UU{k,i};
+                Pp1       = Pp{k,i};
+                Rr1       = Rr{k,i};
+                dH1       = dH{k,i};
                 Qk        = wloc(k)*(Ps'*Q);
-                U0k       = Qp*(UU\(LL\(Pp*(Rr\(Qk)))));
-                Sk        = -Pr'*reshape(inputloc(:,k),[nrec nsrc]);
-                V0k       = Rr'\(Pp'*(LL'\(UU'\(Qp'*Sk))));
-                r         = real(sum(conj(U0k).*(dH'*V0k),2));
-                outputloc = outputloc + Pe'*r;
+                U0k       = Qp1*(UU1\(LL1\(Pp1*(Rr1\(Qk)))));
+                Sk        = -Pr'*reshape(inputloc(:,i,k),[nrec nsrc]);
+                V0k       = Rr1'\(Pp1'*(LL1'\(UU1'\(Qp1'*Sk))));
+                r         = real(sum(conj(U0k).*(dH1'*V0k),2));
+                outputloc(:,i) = outputloc(:,i) + Pe'*r;
             end
         output = pSPOT.utils.global_sum(outputloc);
+      end
     end
     output = output{1};
 end
+output  = vec(output);

@@ -62,8 +62,8 @@ Df1          = Fm([m1 m2 m3 m4],Q,model);
 Df2          = Fm([m01 m02 m03 m04],Q,model);
 bf           = Df1 - Df2;
 %% Lu factorization
-tic;[LL,UU,Pp,Qp,Rr,dH] = LUFactm([m01 m02 m03 m04],Q,model);toc
-%% all in one go approach 
+tic;[LL,UU,Pp,Qp,Rr,dH] = LUFact([m01 m02 m03 m04],Q,model);toc
+%% all in one go approach
 tic;output       = DFm([m01 m02 m03 m04],Q,bf,-1,model);toc;
 tic;bfd       = DFm([m01 m02 m03 m04],Q,output,1,model);toc;
 output       = reshape(output,model.n(1),model.n(2),model.nsamples);
@@ -72,11 +72,11 @@ figure(2);imagesc(x,z,diff(output(:,:,2),1));title('2');
 figure(3);imagesc(x,z,diff(output(:,:,3),1));title('3');
 figure(4);imagesc(x,z,diff(output(:,:,4),1));title('4');
 %% LU factorization
-tic;output       = DFmLU([m01 m02 m03 m04],Q,bf,-1,LL,UU,Pp,Qp,Rr,dH,model);toc;
-tic;bfdlu        = DFmLU([m01 m02 m03 m04],Q,output,1,LL,UU,Pp,Qp,Rr,dH,model);toc;
+J                = oppDFLU([m01 m02 m03 m04],Q,LL,UU,Pp,Qp,Rr,dH,model);
+tic;output       = J'*bf;toc;
+tic;bfdlu        = J*output;toc;
 output       = reshape(output,model.n(1),model.n(2),model.nsamples);
 figure(5);imagesc(x,z,diff(output(:,:,1),1));title('1lu');
 figure(6);imagesc(x,z,diff(output(:,:,2),1));title('2lu');
 figure(7);imagesc(x,z,diff(output(:,:,3),1));title('3lu');
 figure(8);imagesc(x,z,diff(output(:,:,4),1));title('4lu');
-

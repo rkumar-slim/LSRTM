@@ -42,29 +42,18 @@ mu = Px*m;
 % distribute frequencies according to standard distribution
 freq = distributed(model.freq);
 spmd
-    codistr  = codistributor1d(2,[],[prod(nt)*prod(nt),nfreq]);
     freqloc  = getLocalPart(freq);
     nfreqloc = length(freqloc);
-    LLloc    = [];
-    UUloc    = [];
-    Pploc    = [];
-    Qploc    = [];
-    Rrloc    = [];
-    dHloc    = [];
+    LL    = cell(nfreqloc,model.nsamples);
+    UU    = cell(nfreqloc,model.nsamples);
+    Pp    = cell(nfreqloc,model.nsamples);
+    Qp    = cell(nfreqloc,model.nsamples);
+    Rr    = cell(nfreqloc,model.nsamples);
+    dH    = cell(nfreqloc,model.nsamples);
+    for i = 1:model.nsamples
     for k = 1:nfreqloc
-       [Hk, dHk]        = Helm2D_opt(mu,dt,nt,model.nb,model.unit,freqloc(k),model.f0);
-       [LL,UU,Pp,Qp,Rr] = lu(Hk);
-       LLloc            = [LLloc vec(LL)];
-       UUloc            = [UUloc vec(UU)];
-       Pploc            = [Pploc vec(Pp)];
-       Qploc            = [Qploc vec(Qp)];
-       Rrloc            = [Rrloc vec(Rr)];
-       dHloc            = [dHloc vec(dHk)];
+       [Hk, dH{k,i}]        = Helm2D_opt(mu(:,i),dt,nt,model.nb,model.unit,freqloc(k),model.f0);
+       [LL{k,i},UU{k,i},Pp{k,i},Qp{k,i},Rr{k,i}] = lu(Hk);
     end
-    LL = codistributed.build(LLloc,codistr,'noCommunication');
-    UU = codistributed.build(UUloc,codistr,'noCommunication');
-    Pp = codistributed.build(Pploc,codistr,'noCommunication');
-    Qp = codistributed.build(Qploc,codistr,'noCommunication');
-    Rr = codistributed.build(Rrloc,codistr,'noCommunication');
-    dH = codistributed.build(dHloc,codistr,'noCommunication');
+    end
 end
