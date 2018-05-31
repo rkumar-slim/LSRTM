@@ -29,7 +29,7 @@ for i = 1:length(slevel)
     end
 end
 %% training data
-perc    = 0.02; % percentage of training sample selections
+perc    = 0.5; % percentage of training sample selections
 index   = randperm(prod(size(C))*length(slevel));
 index   = index(1:floor(length(index)*perc));
 [In,Jn] = ind2sub([prod(size(C)) length(slevel)],index);
@@ -55,7 +55,7 @@ model.d                 = [5 5];
 model.xt                = x;
 model.zt                = z;
 model.nb                = [60 60;60 60];
-model.freq              = [5:1:10];
+model.freq              = [5:0.5:40];
 model.nf                = numel(model.freq);
 model.f0                = 20; %peak freq of ricker wavelet
 model.t0                = 0; %phase shift of wavelet in seconds
@@ -82,16 +82,15 @@ b                       = reshape(gather(b),model.nsrc*model.nrec*model.nfreq,mo
 tic;[LL,UU,Pp,Qp,Rr,dH] = LUFact(Ms_train,Q,model);toc
 A                       = oppDFLU(Ms_train,Q,LL,UU,Pp,Qp,Rr,dH,model);
 %% variational network
-nImg                = nsub;
-K                   = convFFT(nImg,[5 5 1 1],'Q',eye(25)-ones(25)/25);
+nImg                    = nsub;
+K                       = convFFT(nImg,[5 5 1 1],'Q',eye(25)-ones(25)/25);
 % generate data
-
-x_true              = Mt_train - Ms_train;
-data                = b;
-data                = data +0.01* randn(size(data))/10;
-M                   = scalingKernel([size(x_true,1) size(x_true,1)]);
-layer               = varNetLayerPC_seismic(A,data,M,K,model,'activation',@quadActivation);
-net                 = ResNN(layer,10,2e-3);
+x_true                  = Mt_train - Ms_train;
+data                    = b;
+data                    = data +0.01* randn(size(data))/10;
+M                       = scalingKernel([size(x_true,1) size(x_true,1)]);
+layer                   = varNetLayerPC_seismic(A,data,M,K,model,'activation',@quadActivation);
+net                     = ResNN(layer,5,2e-3);
 
 %% test first
 %  theta = 1e-1*[0 -1 0; -1 4 -1; 0 -1 0];
