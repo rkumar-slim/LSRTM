@@ -1,7 +1,7 @@
 clear all ;clc;
-curdir = pwd;
-addpath(genpath(curdir));
-addpath(genpath('/home/rajiv/Meganet.m'));
+%curdir = pwd;
+addpath(genpath('/home/rajivkumar/LSRTM'));
+addpath(genpath('/home/rajivkumar/Meganet.m'));
 % random seed
 s = RandStream('mt19937ar','Seed',1);
 RandStream.setGlobalStream(s);
