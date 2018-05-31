@@ -29,11 +29,11 @@ for i = 1:length(slevel)
     end
 end
 %% training data
-perc    = 0.5; % percentage of training sample selections
+perc    = 0.1; % percentage of training sample selections
 index   = randperm(prod(size(C))*length(slevel));
 index   = index(1:floor(length(index)*perc));
 [In,Jn] = ind2sub([prod(size(C)) length(slevel)],index);
-
+length(index)
 % creat ebig matirx of test true models
 Mt_train = zeros(100*100,length(index));
 for i = 1:length(index)
@@ -55,7 +55,7 @@ model.d                 = [5 5];
 model.xt                = x;
 model.zt                = z;
 model.nb                = [60 60;60 60];
-model.freq              = [5:0.5:40];
+model.freq              = [5:1:40];
 model.nf                = numel(model.freq);
 model.f0                = 20; %peak freq of ricker wavelet
 model.t0                = 0; %phase shift of wavelet in seconds
@@ -101,7 +101,7 @@ theta = repmat([vec(theta);0.0001],net.nt,1);
 tic;
 Y = apply(net,theta,zeros(prod(model.n),model.nsamples));
 toc;
-return
+
 %%
 figure(1); clf;
 subplot(2,2,1)
