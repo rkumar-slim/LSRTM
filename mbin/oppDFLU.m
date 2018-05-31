@@ -30,8 +30,8 @@ classdef oppDFLU < oppSpot
             nsrc  = size(Q,2);
             nrec  = length(model.xrec)*length(model.zrec);
             nfreq = length(model.freq);
-            m = nsrc*nrec*nfreq;
-            n = length(mt);
+            m = nsrc*nrec*nfreq*model.nsamples;
+            n = length(mt)*model.nsamples;
             if nargin < 4
                 dogather = 0;
             end

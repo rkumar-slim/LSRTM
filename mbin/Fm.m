@@ -52,16 +52,16 @@ mu = Px*m;
 freq = distributed(model.freq);
 w    = distributed(w);
 spmd
-    codistr  = codistributor1d(3,[],[nsrc*nrec,model.nsamples,nfreq]);
+    codistr  = codistributor1d(2,[],[nsrc*nrec,nfreq,model.nsamples]);
     freqloc  = getLocalPart(freq);
     wloc     = getLocalPart(w);
     nfreqloc = length(freqloc);
-    Dloc     = zeros(nrec*nsrc,model.nsamples,nfreqloc);
+    Dloc     = zeros(nrec*nsrc,nfreqloc,model.nsamples);
     for i = 1:model.nsamples
         for k = 1:nfreqloc
             Hk        = Helm2D_opt(mu(:,i),dt,nt,model.nb,model.unit,freqloc(k),model.f0);
             Uk        = Hk\(wloc(k)*(Ps'*Q));
-            Dloc(:,i,k) = vec(Pr*Uk);
+            Dloc(:,k,i) = vec(Pr*Uk);
         end
     end
     D = codistributed.build(Dloc,codistr,'noCommunication');

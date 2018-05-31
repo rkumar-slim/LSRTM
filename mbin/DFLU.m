@@ -61,14 +61,14 @@ w    = distributed(w);
 
 if flag==1
     % solve Helmholtz for each frequency in parallel
+    input     = reshape(input,prod(model.n),model.nsamples);
     spmd
-        codistr   = codistributor1d(3,codistributor1d.unsetPartition,[nsrc*nrec,model.nsamples,nfreq]);
+        codistr   = codistributor1d(2,codistributor1d.unsetPartition,[nsrc*nrec,nfreq,model.nsamples]);
         freqloc   = getLocalPart(freq);
         wloc      = getLocalPart(w);
         nfreqloc  = length(freqloc);
-        outputloc = zeros(nsrc*nrec,model.nsamples,nfreqloc);
-        input     = reshape(prod(model.n),model.nsamples);
-        for i = 1:nsamples
+        outputloc = zeros(nsrc*nrec,nfreqloc,model.nsamples);
+        for i = 1:model.nsamples
             for k = 1: nfreqloc
                 Qp1        = Qp{k,i};
                 LL1        = LL{k,i};
@@ -80,13 +80,14 @@ if flag==1
                 U0k       = Qp1*(UU1\(LL1\(Pp1*(Rr1\(Qk)))));
                 Sk        = -(dH1*(U0k.*repmat(Px*input(:,i),1,nsrc)));
                 U1k       = Qp1*(UU1\(LL1\(Pp1*(Rr1\(Sk)))));
-                outputloc(:,i,k) = vec(Pr*U1k);
+                outputloc(:,k,i) = vec(Pr*U1k);
             end
-        output = codistributed.build(outputloc,codistr,'noCommunication');
+            output = codistributed.build(outputloc,codistr,'noCommunication');
         end
     end
-    output = vec(output);
+%     output = reshape(gather(output),nsrc*nrec*nfreq,model.nsamples);
 else
+    input = distributed(permute(reshape(input,nsrc*nrec,nfreq,model.nsamples),[1 3 2]));
     spmd
         freqloc   = getLocalPart(freq);
         wloc      = getLocalPart(w);
@@ -109,9 +110,10 @@ else
                 r         = real(sum(conj(U0k).*(dH1'*V0k),2));
                 outputloc(:,i) = outputloc(:,i) + Pe'*r;
             end
-        output = pSPOT.utils.global_sum(outputloc);
-      end
+            output = pSPOT.utils.global_sum(outputloc);
+        end
     end
     output = output{1};
 end
-output  = vec(output);
+% output  = reshape(output,prod(model.n),model.nsamples);
+output = vec(gather(output));
