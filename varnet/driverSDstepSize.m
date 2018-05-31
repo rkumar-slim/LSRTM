@@ -1,4 +1,4 @@
-clear all; clc;
+% clear all; clc;
 addpath(genpath('/Volumes/Users/rkumar/Meganet'))
 load OED_shepp.mat
 nImg = [64 64];
@@ -18,7 +18,6 @@ x_true(:,end)=xt(:);
 %%
 K = convFFT(nImg,[5 5 1 1],'Q',eye(25)-ones(25)/25);
 % generate data
-
 data = A*x_true;
 data = data +0.01* randn(size(data))/10;
 M     = scalingKernel([size(x_true,1) size(x_true,1)]);
@@ -34,7 +33,7 @@ theta = repmat([vec(theta);.5*initTheta(M)],net.nt,1);
 tic;
 Y = apply(net,theta,0*A'*data);
 toc;
-return
+
 %%
 figure(1); clf;
 subplot(2,2,1)

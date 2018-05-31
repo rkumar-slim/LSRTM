@@ -1,7 +1,7 @@
 clear all ;clc;
 curdir = pwd;
 addpath(genpath(curdir));
-
+addpath(genpath('/home/rajiv/Meganet.m'));
 % random seed
 s = RandStream('mt19937ar','Seed',1);
 RandStream.setGlobalStream(s);
@@ -25,11 +25,11 @@ for i = 1:length(slevel)
         m           = C{j};
         m           = 1e6./m.^2;
         Models{j,i} = S*vec(m);
-        Modelt{j,i} = m;
+        Modelt{j,i} = m(:);
     end
 end
 %% training data
-perc    = 0.5; % percentage of training sample selections
+perc    = 0.02; % percentage of training sample selections
 index   = randperm(prod(size(C))*length(slevel));
 index   = index(1:floor(length(index)*perc));
 [In,Jn] = ind2sub([prod(size(C)) length(slevel)],index);
@@ -44,16 +44,17 @@ Ms_train = zeros(100*100,length(index));
 for i = 1:length(index)
     Ms_train(:,i) = Models{In(i),Jn(i)};
 end
+
 %% create synthetic data for testing and define model parameters
-z              = 0:5:495;
-x              = 0:5:495;
-n              = nsub;
-model.n        = n;
-model.o        = [0 0];
-model.d        = [5 5];
-model.xt       = x;
-model.zt       = z;
-model.nb       = [60 60;60 60];
+z                       = 0:5:495;
+x                       = 0:5:495;
+n                       = nsub;
+model.n                 = n;
+model.o                 = [0 0];
+model.d                 = [5 5];
+model.xt                = x;
+model.zt                = z;
+model.nb                = [60 60;60 60];
 model.freq              = [5:1:10];
 model.nf                = numel(model.freq);
 model.f0                = 20; %peak freq of ricker wavelet
@@ -68,10 +69,15 @@ nr                      = length(model.xrec);
 Q                       = speye(ns);
 model.unit              = 's2/km2';
 model.nsamples          = length(index);
+model.nsrc              = size(Q,2);
+model.nrec              = length(model.zrec)*length(model.xrec);
+model.nfreq             = length(model.freq);
+model.datan             = model.nsrc*model.nrec*model.nfreq;
 %% generate true seismic data
 Df1                     = Fm(Mt_train,Q,model);
 Df2                     = Fm(Ms_train,Q,model);
 b                       = Df1 - Df2;
+b                       = reshape(gather(b),model.nsrc*model.nrec*model.nfreq,model.nsamples);
 %% Lu factorization
 tic;[LL,UU,Pp,Qp,Rr,dH] = LUFact(Ms_train,Q,model);toc
 A                       = oppDFLU(Ms_train,Q,LL,UU,Pp,Qp,Rr,dH,model);
@@ -84,23 +90,23 @@ x_true              = Mt_train - Ms_train;
 data                = b;
 data                = data +0.01* randn(size(data))/10;
 M                   = scalingKernel([size(x_true,1) size(x_true,1)]);
-layer               = varNetLayerPC(A,data,M,K,'activation',@quadActivation);
-net                 = ResNN(layer,3,2e-3);
+layer               = varNetLayerPC_seismic(A,data,M,K,model,'activation',@quadActivation);
+net                 = ResNN(layer,10,2e-3);
 
 %% test first
 %  theta = 1e-1*[0 -1 0; -1 4 -1; 0 -1 0];
 %  theta = 1*[0 0 0; 0 1 0; 0 0 0];
 theta = zeros(5,5);
 theta(3,3)=1;
-theta = repmat([vec(theta);.5*initTheta(M)],net.nt,1);
+theta = repmat([vec(theta);0.0001],net.nt,1);
 tic;
-Y = apply(net,theta,0*A'*data);
+Y = apply(net,theta,zeros(prod(model.n),model.nsamples));
 toc;
 return
 %%
 figure(1); clf;
 subplot(2,2,1)
-montageArray(reshape(A'*data,nImg(1),nImg(2),[]))
+montageArray(reshape(A'*data(:),nImg(1),nImg(2),[]))
 title('backprojection')
 colorbar
 subplot(2,2,2)
@@ -120,11 +126,11 @@ colorbar
 %%
 net.layer.b = data;
 pReg = tikhonovReg(opEye(nTheta(net)),1e-4);
-fctn = mseObjFctn(net,pReg,0*A'*data,x_true);
+fctn = mseObjFctn(net,pReg,zeros(prod(model.n),model.nsamples),x_true);
 % [isOK,his] = checkDerivative(fctn,initTheta(net),'out',1);
 
 %%
-opt = sd('out',1,'maxIter',2);
+opt = sd('out',1,'maxIter',10);
 th0 = theta;
 thOpt = solve(opt,fctn,th0);
 
